@@ -23,7 +23,7 @@ os.chdir(sys.argv[1])
 # Walk the directory structure looking for MP4 files
 for root, subfolders, files in os.walk('.'):
 	# Mention what path we're working in.
-	print("Working in", os.path.abspath(root))
+	print "Working in " +  os.path.abspath(root)
 	# Since root contains the working folder, and we'll move onto subfolders later, 
 	# We only care about the filename
 	for filename in files:
@@ -37,4 +37,4 @@ for root, subfolders, files in os.walk('.'):
 				hash2 = hashMP4(dup)
 				if hash1 == hash2:
 					print "Removing " + dup + "!"
-					#os.remove(dup)
+					os.remove(dup)
