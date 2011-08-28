@@ -1,29 +1,20 @@
-import hash, os, sys, re
+import hash, mp4, os, sys, re
 from os.path import join
 
-def hashAndAdd(file):
-	# Check if it's a valid MP3 file first by trying to get the ID3 info
+def hashMP4(filename):
+	file = open(filename, 'r')
 	try:
-		title, artist, album = mp3.getid3(file)
+		mp4.isMP4(file)
 	except Exception as e:
-		# So far the only exception is an invalid ID3 header found, so not much to grab
+		# So far the only exception is an invalid MP4 header found, so not much to grab
 		print(e)
 		return
-	# Gets back a tuple with (count of rows, mtime)
-	# Check if the file has already been hashed
-	if exists > 0:
-		# If the file hasn't been modified since it was checked, don't bother hashing it
-		if dbmtime >= mtime:
-			return
-		else:
-			# Need to come up with an update statement...
-			print("Updating", file)
-			update = True
-	
-	tempfile = mp3.stripid3(file)
-	hashresult = hash.sha512file(tempfile[1])
-	os.close(tempfile[0])
-	os.remove(tempfile[1])
+	tempfile = mp4.stripMetadata(file)
+	#print os.path.exists(tempfile.name)
+	hashresult = hash.sha512file(tempfile.name)
+	#print tempfile
+	tempfile.close()
+	os.remove(tempfile.name)
 	
 # Initial setup of search path
 os.chdir(sys.argv[1])
@@ -38,5 +29,12 @@ for root, subfolders, files in os.walk('.'):
 	for filename in files:
 		# So, for each file, check if it has an MP4 extension
 		if re.search(".mp4",filename,re.IGNORECASE):
-			# If is does, hash & add it to the db
-			hashAndAdd(os.path.abspath(join(root,filename)))
+			# If is does, check if it possibly has a naively named dup
+			(filenameprefix, dot, filenamesuffix) = filename.rpartition(".")
+			dup = filenameprefix + "_2." + filenamesuffix
+			if os.path.exists(dup):
+				hash1 = hashMP4(os.path.abspath(join(root,filename)))
+				hash2 = hashMP4(dup)
+				if hash1 == hash2:
+					print "Removing " + dup + "!"
+					#os.remove(dup)

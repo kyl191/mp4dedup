@@ -1,0 +1,17 @@
+TL;DR: I have a bunch of MP4 video files that have identical content, but the internal metadata differs. I’m writing a Python function/module/program that’ll strip out the metadata, so hashing functions can find the duplicates.I have a bunch of MP4 files that I’ve collected over the years, and I’ve realised that some of them are duplicates. But…while the content is identical, the metadata is different, so I can’t do a simple hash of the file with md5 or sha1sum to find the duplicates.
+
+My plan with my MP3 deduper was to read the MP3 file, then strip out the metadata before passing the actual content to a hash function. Eventually, that changed to the current method of just making a copy of the MP3 file, writing blank ID3 tags to it, and checksumming that, mainly because it’s a lot easier thanks to the ID3 tagging module that I found.
+
+Unfortunately, there doesn’t seem to be an equivalent metadata management module for MP4 files in Python. There’s mp4file, which at least shows me how to find the metadata, but not how to remove it.
+
+Outside of Python, there’s AtomicParsley, which is ancient (last commit is dated 2006-09-26), so I’m not too sure I want to touch it. Admittedly, the –metaEnema option seems to be exactly what I want, so it’s the fallback. Except then I’d need to brush up on my Bash shell scripting. And I’m not too sure if I can do insertion into a DB with it either. (The alternative that I’m thinking is to use Python to execute AtomicParsley by doing the equivalent of exec(), passing in the appropriate options in the command.)
+
+So, in light of that, I’m planning to try and whip up my own MP4 metadata stripper. The basic structure of MP4 files looks simple:
+
+    4 bytes for the length of the atom/box
+    Next 4 bytes is the atom name, encoded in UTF8 (as far as I can tell, the length includes these 4 bytes)
+    The rest of the atom is the data that’s stored.
+
+Because of that, it should be easy to just read the file and seek to the various offsets until I find the actual data atom (which is named mdat), then just output that into a separate temp file for hashing.
+
+- http://www.kyl191.net/2011/08/on-mp4-file-headers-and-metadata
